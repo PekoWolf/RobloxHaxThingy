@@ -1,0 +1,156 @@
+-- Gui to Lua
+-- Version: 3.2
+
+-- Instances:
+
+-- Settings
+-- aimbooty
+
+local Mode = "AimTriggerBot"
+local AimSpeed = 0.25
+local distance = 10
+
+local Player = game.Players.LocalPlayer
+
+local Warner = Instance.new("ScreenGui")
+local TextLabel = Instance.new("TextLabel")
+
+--Properties:
+
+if Player.PlayerGui:FindFirstChild("Warner") then
+Player.PlayerGui.Warner:Destroy()
+end
+
+Warner.Name = "Warner"
+Warner.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+TextLabel.Parent = Warner
+TextLabel.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+TextLabel.BorderColor3 = Color3.fromRGB(53, 53, 53)
+TextLabel.BorderSizePixel = 5
+TextLabel.Position = UDim2.new(0.42101106, 0, 0, 0)
+TextLabel.Size = UDim2.new(0, 200, 0, 30)
+TextLabel.Font = Enum.Font.Roboto
+TextLabel.Text = "Warning Close!"
+TextLabel.TextColor3 = Color3.fromRGB(255, 0, 4)
+TextLabel.TextScaled = true
+TextLabel.TextSize = 14.000
+TextLabel.TextWrapped = true
+
+pcall(function()
+for i,v in pairs(workspace:GetChildren()) do
+if v:isA("Sound") then
+v:Destroy()
+end
+end
+end)
+
+local Sound = Instance.new("Sound",workspace)
+Sound.Volume = 1
+Sound.Looped = true
+Sound.Name = "HB"
+Sound.SoundId = "rbxassetid://131038747"
+
+local Mouse = Player:GetMouse()
+
+local Effects = Instance.new("Model",workspace)
+
+function checkregion(point,range,ignore)
+return workspace:FindPartsInRegion3WithIgnoreList(Region3.new(point-Vector3.new(1,1,1)*range/2,point+Vector3.new(1,1,1)*range/2),ignore,math.huge)
+end
+
+function EffectZombie(zom)
+if zom:FindFirstChild("holo") == nil then
+   local zomcf = zom.Head.CFrame
+local holo = Instance.new("Part")
+holo.Transparency = 0.75
+holo.Name = "holo"
+holo.BrickColor = BrickColor.new("Really red")
+holo.Material = "Neon"
+holo.Position = zom.HumanoidRootPart.Position
+holo.Anchored = true
+holo.CanCollide = false
+    holo.Size = Vector3.new(1,1,1)
+local Sine = 0
+holo.Parent = zom
+for i,v in pairs(zom:GetChildren()) do
+   if v:IsA("BasePart") then
+       v.CanCollide = false
+       end
+   end
+while zom.Parent ~= nil do
+   wait(1/30)
+Sine = Sine + 1
+zom.Head.Anchored = true
+local hp = zom.Humanoid.Health/zom.Humanoid.MaxHealth
+holo.Size = Vector3.new(0.5,0.5,0.5) - Vector3.new(hp,hp,hp)
+zom.Head.CFrame = zomcf
+end
+holo:Destroy()
+end
+end
+
+local mouse2 = false
+local aimbotting = false
+
+Mouse.Button2Down:Connect(function()
+   mouse2 = true
+end)
+
+Mouse.Button2Up:Connect(function()
+   mouse2 = false
+   end)
+
+local Heads = {"EyeL", "EyeR", "Head"}
+
+while Warner.Parent ~= nil do
+game:GetService("RunService").RenderStepped:Wait()
+   pcall(function()
+       local mouser = nil
+       for _,vv in next, checkregion(Mouse.Hit.p,1,{}) do
+            if vv~=nil and vv.Parent.Name == "Zombie" and table.find(Heads,vv.Name) and vv.Parent.Humanoid.Health > 0 then
+                mouser = vv
+                break
+                end
+       end
+       for _,vv in next, checkregion(Player.Character.HumanoidRootPart.CFrame*CFrame.new(0,0,-5).p,5,{}) do
+            if vv~=nil and vv.Parent.Name == "Zombie" and table.find(Heads,vv.Name) and vv.Parent.Humanoid.Health > 0 then
+                mouser = vv
+                break
+                end
+           end
+      if mouse2 == true and mouser~=nil and mouser.Parent.Name == "Zombie" and table.find(Heads,mouser.Name) and mouser.Parent.Humanoid.Health > 0 then
+        if Mode == "AimBot" or Mode == "AimTriggerBot" then
+           mouse2press()
+        end
+       if Mode == "TriggerBot" or Mode == "AimTriggerBot" then
+            mouse1click()
+            end
+        if Mode == "AimBot" or Mode == "AimTriggerBot" then
+           workspace.CurrentCamera.CFrame = workspace.CurrentCamera.CFrame:Lerp(CFrame.new(workspace.CurrentCamera.CFrame.p,mouser.CFrame.p),AimSpeed)
+           end
+          else
+              -- workspace.CurrentCamera.CFrame = workspace.CurrentCamera.CFrame * CFrame.Angles(math.rad(0.1),0,0)
+          end
+local zombieclose = false
+for i,v in pairs(workspace.Baddies:GetChildren()) do
+if v.Humanoid.Health > 0 and v:FindFirstChild("Head") then
+if (v.Head.Position - Player.Character.Head.Position).Magnitude < distance and v.Head.Position.Y-5 < Player.Character.Head.Position.Y then
+zombieclose = true
+spawn(function()
+EffectZombie(v)
+end)
+end
+end
+end
+if zombieclose == true then
+Sound.Playing =  true
+TextLabel.Text = "Warning Close!"
+TextLabel.TextColor3 = Color3.fromRGB(255,0,0)
+elseif zombieclose == false then
+Sound.Playing =  false
+TextLabel.TextColor3 = Color3.fromRGB(0,0,255)
+TextLabel.Text = "Safe"
+end
+end)
+end
